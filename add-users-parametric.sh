@@ -195,4 +195,4 @@ for line in $(tail "$stage_file" -n+2); do
 done
 
 # IDMTODB Consistency
-./idmtobd/idmtodb_launcher.sh
+./idmtodb/idmtodb_launcher.sh
