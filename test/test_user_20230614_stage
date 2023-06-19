@@ -1,0 +1,3 @@
+username,name,surname,uid,gid,group_name,division,creation_date,expiration_date,vpn_expiration_date,email,closing_date,pwd
+md99988,Marco,Danilelli,3025,3000,sysm,sysm,2023-06-16,2024-12-31,2025-12-31,marco.danilelli@cmcc.it,None,abcXYZ1234
+dm88899,Danilo,Marchiarelli,3026,3000,sysm,sysm,2023-06-16,2024-12-31,2025-12-31,danilo.marchiarelli@cmcc.it,None,cabZYX4321
