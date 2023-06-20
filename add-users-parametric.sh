@@ -2,11 +2,6 @@
 #IFS=$'\n'
 SEP=','
 
-IDMTODB_PROMPT_ON_INSERT=${1:-"1"}
-IDMTODB_PROMPT_ON_UPDATE=${2:-"1"}
-IDMTODB_PROMPT_ON_DELETE=${3:-"2"} #${3:-"1"} # insert a number > 1 (i.e. 2) in order to permanently disable delete synchronization
-IDMTODB_MAX_USERS=${4:-"1000"}
-
 date_keyword="date"
 docx_filename="Juno_account_username_DIVISION_script.docx"
 in_file="$1"
@@ -21,6 +16,10 @@ stage_file_loc="$out_dir_name""/""$stage_file"
 sed "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file" > "$stage_file_loc"
 cnt_file=0
 
+IDMTODB_PROMPT_ON_INSERT=${2:-"1"}
+IDMTODB_PROMPT_ON_UPDATE=${3:-"1"}
+IDMTODB_PROMPT_ON_DELETE=${4:-"2"} #${3:-"1"} # insert a number > 1 (i.e. 2) in order to permanently disable delete synchronization
+IDMTODB_MAX_USERS=${5:-"1000"}
 
 for line in $(tail "$stage_file_loc" -n+2); do
     #IFS=' '
