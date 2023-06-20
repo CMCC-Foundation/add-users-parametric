@@ -10,12 +10,14 @@ stage_file="$in_file""_stage"
 out_dir_name="users_""$(date '+%Y-%m-%d')""_$(od -vAn -N1 -td1 < /dev/urandom | tr '-' ' ' | tr -d ' ')"
 mkdir -p "$out_dir_name"
 
+stage_file_loc="$out_dir_name""/""$stage_file"
+
 #sed -i "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file"
-sed "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file" > "$out_dir_name"/"$stage_file"
+sed "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file" > "$stage_file_loc"
 cnt_file=0
 
 
-for line in $(tail "$stage_file" -n+2); do
+for line in $(tail "$stage_file_loc" -n+2); do
     #IFS=' '
     cnt_file=$(($cnt_file+1))
     username=$(echo $line|cut -f1 -d"$SEP")
@@ -63,6 +65,7 @@ for line in $(tail "$stage_file" -n+2); do
     gecos=$(echo $first" "$last )
 
     pwd=$(echo $line|cut -f13 -d"$SEP")
+    mach=$(echo $line|cut -f14 -d"$SEP")
 
     #first=$(echo $gecos| cut -d' ' -f1 )
     #last=$(echo $gecos| cut -d' ' -f 2- )
@@ -88,6 +91,7 @@ for line in $(tail "$stage_file" -n+2); do
     echo "EMAIL: ""$email"
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
+    echo "MACH: ""$mach"
 
     #echo "PASS PRE"
     
@@ -140,30 +144,35 @@ for line in $(tail "$stage_file" -n+2); do
     echo "*************************************************" >> "$out_dir_name"/"$in_file""_logs"
     #### END
 
+    mach_users="$mach""-users"
+
      #continue
     #### PARTE INSERIMENTO GRUPPI
-    ipa group-add-member "juno-users" --users="$username" 1>/dev/null
+    ipa group-add-member "$mach_users" --users="$username" 1>/dev/null
 
     if [[ "$?" != "0" ]];
     then
-        echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"juno-users\" group." >&2
+        echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_users""\" group." >&2
         continue
     fi
 
 
-    if [[ "$group_name" != "juno-ext" ]] && [[ "$division" != "juno-ext" ]]; # decidere se "juno-ext" sarà indicato su division o group_name
+    mach_ext="$mach""-ext"
+    mach_cmcc="$mach""-cmcc"
+
+    if [[ "$group_name" != "$mach_ext" ]] && [[ "$division" != "$mach_ext" ]]; # decidere se "mach-ext" sarà indicato su division o group_name
     then
-        ipa group-add-member "juno-cmcc" --users="$username" 1>/dev/null
+        ipa group-add-member "$mach_cmcc" --users="$username" 1>/dev/null
     	if [[ "$?" != "0" ]];
     	then
-            echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"juno-cmcc\" group." >&2
+            echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_cmcc""\" group." >&2
             continue
     	fi
     else
-        ipa group-add-member "juno-ext" --users="$username" 1>/dev/null
+        ipa group-add-member "$mach_ext" --users="$username" 1>/dev/null
         if [[ "$?" != "0" ]];
         then
-            echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"juno-ext\" group." >&2
+            echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_ext""\" group." >&2
             continue
         fi
     fi
@@ -195,4 +204,4 @@ for line in $(tail "$stage_file" -n+2); do
 done
 
 # IDMTODB Consistency
-./idmtodb/idmtodb_launcher.sh
+./idmtodb/idmtodb_launcher.sh 1 1 2 1000 "$stage_file_loc"

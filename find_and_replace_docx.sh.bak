@@ -9,8 +9,7 @@ tokens=($3)
 rep_tokens=($4)
 
 token_len="${#tokens[@]}"
-username="${rep_tokens[2]}"
-echo "USERNAME: ""$username"
+
 
 echo "token len: ""${#tokens[@]}"
 
@@ -40,8 +39,6 @@ do
     echo "char count: ""$(echo "${tokens[$i]}" | wc -c)"
     sed -i "s/${tokens[$i]}/${rep_tokens[$i]}/g" tmp/word/document.xml #find/replace
 done
-
-cp -f "./""$username"".png" "./tmp/word/media/image2.png"
 
 #sed -i "s/SECRET/%SECRET%/g" tmp/word/document.xml
 
