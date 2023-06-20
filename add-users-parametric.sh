@@ -2,6 +2,11 @@
 #IFS=$'\n'
 SEP=','
 
+IDMTODB_PROMPT_ON_INSERT=${1:-"1"}
+IDMTODB_PROMPT_ON_UPDATE=${2:-"1"}
+IDMTODB_PROMPT_ON_DELETE=${3:-"2"} #${3:-"1"} # insert a number > 1 (i.e. 2) in order to permanently disable delete synchronization
+IDMTODB_MAX_USERS=${4:-"1000"}
+
 date_keyword="date"
 docx_filename="Juno_account_username_DIVISION_script.docx"
 in_file="$1"
@@ -204,4 +209,4 @@ for line in $(tail "$stage_file_loc" -n+2); do
 done
 
 # IDMTODB Consistency
-./idmtodb/idmtodb_launcher.sh 1 1 2 1000 "$stage_file_loc"
+./idmtodb/idmtodb_launcher.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_MAX_USERS" "$stage_file_loc"
