@@ -3,6 +3,8 @@
 SEP=','
 
 date_keyword="date"
+pwd_keyword="password"
+pwd_len=10
 docx_filename="Juno_account_username_DIVISION_script.docx"
 in_file="$1"
 stage_file="$in_file""_stage"
@@ -68,7 +70,8 @@ for line in $(tail "$stage_file_loc" -n+2); do
     shell="/bin/bash"
     gecos=$(echo $first" "$last )
 
-    pwd=$(echo $line|cut -f13 -d"$SEP")
+    pwd_tmp=$(echo $line|cut -f13 -d"$SEP")
+    pwd=$(if [[ "$pwd_tmp" == "$pwd_keyword" ]]; then echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'); else echo "$pwd_tmp"; fi)
     mach=$(echo $line|cut -f14 -d"$SEP")
 
     #first=$(echo $gecos| cut -d' ' -f1 )
