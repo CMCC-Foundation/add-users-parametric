@@ -21,7 +21,7 @@ do
         ls -lah "/work/""$this_div" | grep "$this_user"
         echo "Done."
         data_dir="/data/""$this_div""/""$this_user"
-        echo "Creating /data dir: ""$work_dir"
+        echo "Creating /data dir: ""$data_dir"
         mkdir -p "$data_dir"
         echo "Setting UNIX ownerships.."
         chown "$this_user":"$this_grp" "$data_dir"
