@@ -33,6 +33,9 @@ FILE_OUT="$2"
 
 unzip "$FILE" -d tmp #unzip
 
+rep_tokens[0]="$(echo ${rep_tokens[0]} | tr '@' ' ')"
+rep_tokens[1]="$(echo ${rep_tokens[1]} | tr '@' ' ')"
+
 for i in $(seq 0 $(($token_len-1)));
 do
     echo "token: ""${tokens[$i]}"
@@ -41,7 +44,7 @@ do
     sed -i "s/${tokens[$i]}/${rep_tokens[$i]}/g" tmp/word/document.xml #find/replace
 done
 
-cp -f "./""$username"".png" "./tmp/word/media/image2.png"
+cp -f "$(echo $FILE_OUT | cut -d'/' -f1)""/""$username"".png" "./tmp/word/media/image2.png"
 
 #sed -i "s/SECRET/%SECRET%/g" tmp/word/document.xml
 
