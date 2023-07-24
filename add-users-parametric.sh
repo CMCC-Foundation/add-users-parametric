@@ -1,5 +1,5 @@
 #!/bin/bash
-IFS=$'\n'
+#IFS=$'\n'
 SEP=','
 
 date_keyword="date"
@@ -24,7 +24,7 @@ IDMTODB_PROMPT_ON_DELETE=${4:-"2"} #${3:-"1"} # insert a number > 1 (i.e. 2) in 
 IDMTODB_MAX_USERS=${5:-"1000"}
 
 for line in $(tail "$stage_file_loc" -n+2); do
-    IFS=' '
+    #IFS=' '
     cnt_file=$(($cnt_file+1))
     username=$(echo $line|cut -f1 -d"$SEP")
     first=$(echo $line|cut -f2 -d"$SEP")
@@ -72,9 +72,7 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
     pwd_tmp=$(echo $line|cut -f13 -d"$SEP")
     pwd=$(if [[ "$pwd_tmp" == "$pwd_keyword" ]]; then echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'); else echo "$pwd_tmp"; fi)
-    #echo "PWD is: ""$pwd"
-    #continue
-    #exit
+
     mach=$(echo $line|cut -f14 -d"$SEP")
 
     #first=$(echo $gecos| cut -d' ' -f1 )
