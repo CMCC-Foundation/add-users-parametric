@@ -17,6 +17,10 @@ stage_file_loc="$out_dir_name""/""$stage_file"
 
 #sed -i "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file"
 sed "s/;$date_keyword;/;$(date '+%Y-%m-%d');/g" "$in_file" > "$stage_file_loc"
+sed -i "s/;;;;/;$(date '+%Y-%m-%d');None;None;/g" "$stage_file_loc"
+sed -i "s/;;;/;None;None;/g" "$stage_file_loc"
+sed -i "s/;;/;None;/g" "$stage_file_loc"
+
 cnt_file=0
 
 IDMTODB_PROMPT_ON_INSERT=${2:-"1"}
@@ -64,7 +68,12 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
     creation_date=$(echo $line |cut -f7 -d"$SEP")
 
+    if [[ "$creation_date" = "None" ]] || [[ "$creation_date" = "" ]];then
+        creation_date=$(date '+%Y-%m-%d')
+    fi
+
     tmp_expdate=$(echo $line|cut -f8 -d"$SEP")
+    vpn_tmp_expdate=$(echo $line|cut -f9 -d"$SEP")
 
     if [[ "$tmp_expdate" = "None" ]] || [[ "$tmp_expdate" = "" ]];then
         expdate=""
@@ -105,10 +114,14 @@ for line in $(tail "$stage_file_loc" -n+2); do
     echo "UID: ""$uid"
     echo "GID: ""$gid"
     #echo "GROUP_NAME: ""$group_name"
-    #echo "DIVISION: ""$div"
+    if [[ "$mach" != "" ]]; then
+        div="${groups[0]}"
+	echo "DIVISION: ""$div"
+    fi
     echo "GROUPS: ""$groups"
     echo "CREATION_DATE: ""$creation_date"
-    echo "EXPIRATION_DATE: ""$expdate"
+    echo "EXPIRATION_DATE: ""$tmp_expdate"
+    echo "VPN_EXPIRATION_DATE: ""$vpn_tmp_expdate"
     echo "EMAIL: ""$email"
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
@@ -140,7 +153,11 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
      #### BEGIN
     #echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --homedir="/users_home/$div/$username" --shell="$shell" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
-    echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
+    if [[ "$mach" != "" ]]; then
+	echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --homedir="/users_home/$div/$username" --shell="$shell" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
+    else
+        echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
+    fi
     if (( $? == 0 ));then
         echo "  Password for $username is: $pwd" >> "$out_dir_name"/"$in_file""_logs"
         otptoken_text=$(ipa otptoken-add --type=totp --owner=$username)
@@ -186,6 +203,9 @@ for line in $(tail "$stage_file_loc" -n+2); do
     	mach_ext="$mach""-ext"
     	mach_cmcc="$mach""-cmcc"
 
+	group_name="${group_name[1]}"
+	division="$div"
+
     	if [[ "$group_name" != "$mach_ext" ]] && [[ "$division" != "$mach_ext" ]]; # decidere se "mach-ext" sarà indicato su division o group_name
     	then
         	ipa group-add-member "$mach_cmcc" --users="$username" 1>/dev/null
@@ -208,7 +228,7 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
     for group_name in ${groups[@]};
     do
-
+	cnt=$(($cnt+1))
 	if [[ "${groups[$cnt]}" != "${groups[$(($cnt-1))]}" ]];
 	then
         	ipa group-add-member "$group_name" --users="$username" 1>/dev/null
@@ -252,4 +272,4 @@ for line in $(tail "$stage_file_loc" -n+2); do
 done
 
 # IDMTODB Consistency
-./idmtodb_launcher.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_MAX_USERS" "$stage_file_loc"
+../idmtodb/idmtodb_launcher_ignore_groups.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_MAX_USERS" "$stage_file_loc"
