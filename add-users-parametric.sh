@@ -88,14 +88,14 @@ for line in $(tail "$stage_file_loc" -n+2); do
     shell="/bin/bash"
     gecos=$(echo $first" "$last )
 
-    pwd_tmp=$(echo $line|cut -f12 -d"$SEP")
+    pwd_tmp=$(echo $line|cut -f13 -d"$SEP")
     pwd=$(if [[ "$pwd_tmp" == "$pwd_keyword" ]]; then echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'); else echo "$pwd_tmp"; fi)
     #echo "PWD is: ""$pwd"
     #continue
     #exit
     
     
-    mach=$(echo $line|cut -f13 -d"$SEP")
+    mach=$(echo $line|cut -f14 -d"$SEP")
 
     #first=$(echo $gecos| cut -d' ' -f1 )
     #last=$(echo $gecos| cut -d' ' -f 2- )
@@ -245,6 +245,8 @@ for line in $(tail "$stage_file_loc" -n+2); do
         echo "GROUP_NAME: ""$group_name"
 
     done
+
+    ipa group-add-member "registry" --users="$username" 1>/dev/null
 
     #ipa group-add-member "$div" --users="$username" 1>/dev/null
 
