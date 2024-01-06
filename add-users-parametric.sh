@@ -14,12 +14,13 @@ out_dir_name="users_""$(date '+%Y-%m-%d')""_$(od -vAn -N1 -td1 < /dev/urandom | 
 mkdir -p "$out_dir_name"
 
 stage_file_loc="$out_dir_name""/""$stage_file"
+stage_file_loc_2="$out_dir_name""/""$stage_file""_2"
 
 #sed -i "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file"
 sed "s/;$date_keyword;/;$(date '+%Y-%m-%d');/g" "$in_file" > "$stage_file_loc"
 sed -i "s/;;;;/;$(date '+%Y-%m-%d');None;None;/g" "$stage_file_loc"
 sed -i "s/;;;/;None;None;/g" "$stage_file_loc"
-sed -i "s/;;/;None;/g" "$stage_file_loc"
+#sed -i "s/;;/;None;/g" "$stage_file_loc"
 
 cnt_file=0
 
@@ -30,6 +31,9 @@ IDMTODB_IGNORE_GROUPS=${5:-"0"} #1"}
 IDMTODB_IGNORE_DIVISION_GROUP_NAME=${6:-"0"}
 IDMTODB_MAX_USERS=${7:-"1000"}
 
+
+cat "$stage_file_loc" | head -n1 > "$stage_file_loc_2"
+
 for line in $(tail "$stage_file_loc" -n+2); do
     
     echo "*************************************************"
@@ -38,6 +42,28 @@ for line in $(tail "$stage_file_loc" -n+2); do
     username=$(echo $line|cut -f1 -d"$SEP")
     first=$(echo $line|cut -f2 -d"$SEP")
     last=$(echo $line|cut -f3 -d"$SEP")
+
+    if [[ -z "$last" ]];
+    then
+	last="project account"
+    fi
+
+    if [[ -z "$username" ]] || [[ "$username" = "None" ]];
+    then
+    	if [[ "$last" != "project account" ]];
+	then
+		username=$(echo "${first:0:1}""${last:0:1}""$(date +%j%y)" | tr '[:upper:]' '[:lower:]' )
+		echo "$username""$line" >> "$stage_file_loc_2"
+	elif [[ ! -z "$first" ]];
+	then
+		username="$first"
+	else
+		echo "ERROR project account cannot have blank username." >&2
+	fi
+    else	
+	echo "$line" >> "$stage_file_loc_2"
+    fi
+
     # Not collecting encrypted password because we need cleartext password to create kerberos key
     uid=$(echo $line|cut -f4 -d"$SEP")
     gid=$(echo $line|cut -f5 -d"$SEP")
@@ -274,5 +300,7 @@ for line in $(tail "$stage_file_loc" -n+2); do
 	#cnt_file=$(($cnt_file+1))
 done
 
+mv "$stage_file_loc_2" "$stage_file_loc"
+
 # IDMTODB Consistency
-../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
+#../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
