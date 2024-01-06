@@ -111,6 +111,12 @@ for line in $(tail "$stage_file_loc" -n+2); do
     #echo $expdate
 
     email=$(echo $line|cut -f10 -d"$SEP")
+    
+    if [[ -z "$email" ]];
+    then
+	    email="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')""@cmcc.it"
+    fi
+    
     shell="/bin/bash"
     gecos=$(echo $first" "$last )
 
