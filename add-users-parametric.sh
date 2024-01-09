@@ -8,6 +8,7 @@ pwd_keyword="password"
 pwd_len=10
 docx_filename="CMCC_VPN_account_username_GROUP_script.docx" #"Juno_account_username_DIVISION_script.docx"
 in_file="$1"
+issuer="$2"
 stage_file="$in_file""_stage"
 
 out_dir_name="users_""$(date '+%Y-%m-%d')""_$(od -vAn -N1 -td1 < /dev/urandom | tr '-' ' ' | tr -d ' ')"
@@ -112,9 +113,11 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
     email=$(echo $line|cut -f10 -d"$SEP")
     
+    name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
+
     if [[ -z "$email" ]];
     then
-	    email="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')""@cmcc.it"
+	    email="$name_dot_surname""@cmcc.it"
     fi
     
     shell="/bin/bash"
@@ -204,6 +207,13 @@ for line in $(tail "$stage_file_loc" -n+2); do
 	docx_filename_out="$out_dir_name"/"CMCC_VPN_account_""$username""_""$(echo $div | tr '[:lower:]' '[:upper:]')"".docx"
         #docx_filename_out="$out_dir_name"/"CMCC_VPN_account_""$username"".docx"
 	./find_and_replace_docx.sh "$docx_filename" "$docx_filename_out" '%NAME% %SURNAME% %USERNAME% %PASSWORD% %SECRET%' "$packed_docx_args"
+        
+	if [[ ! -z "$issuer" ]];
+	then
+        	scp "$docx_filename_out" "root@sccdb.cmcc.scc":"/root/gdrive_API/files/"
+		ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log"
+	fi
+
         #ipa otptoken-add --type=totp --owner=sysm07 | grep URI | sed 's/  URI: //g'
     else
         echo "Error [""$?""] while creating the user!"
@@ -309,4 +319,4 @@ done
 mv "$stage_file_loc_2" "$stage_file_loc"
 
 # IDMTODB Consistency
-#../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
+../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
