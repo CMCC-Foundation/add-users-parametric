@@ -111,7 +111,7 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
     #echo $expdate
 
-    email=$(echo $line|cut -f10 -d"$SEP")
+    email=$(echo $line|cut -f11 -d"$SEP")
     
     name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
 
@@ -123,14 +123,14 @@ for line in $(tail "$stage_file_loc" -n+2); do
     shell="/bin/bash"
     gecos=$(echo $first" "$last )
 
-    pwd_tmp=$(echo $line|cut -f13 -d"$SEP")
+    pwd_tmp=$(echo $line|cut -f14 -d"$SEP")
     pwd=$(if [[ "$pwd_tmp" == "$pwd_keyword" ]]; then echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'); else echo "$pwd_tmp"; fi)
     #echo "PWD is: ""$pwd"
     #continue
     #exit
     
     
-    mach=$(echo $line|cut -f14 -d"$SEP")
+    mach=$(echo $line|cut -f15 -d"$SEP")
 
     #first=$(echo $gecos| cut -d' ' -f1 )
     #last=$(echo $gecos| cut -d' ' -f 2- )
@@ -211,7 +211,7 @@ for line in $(tail "$stage_file_loc" -n+2); do
 	if [[ ! -z "$issuer" ]];
 	then
         	scp "$docx_filename_out" "root@sccdb.cmcc.scc":"/root/gdrive_API/files/"
-		ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log"
+		ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log ; cat files/$out_dir_name/drive_api_log"
 	fi
 
         #ipa otptoken-add --type=totp --owner=sysm07 | grep URI | sed 's/  URI: //g'
