@@ -114,7 +114,7 @@ else
 		echo "Subject: $mach_upper account activation notification (username $username)";
        		echo "From: $MAIL_FROM";
        		echo "To: $email";
-		echo "Cc: marco_chiarelli@yahoo.it";
+		#echo "Cc: marco_chiarelli@yahoo.it";
 		#echo "Cc: $division_director_mail, $HSM_MAIL_CC";
 		#echo "Cc: $HSM_MAIL_CC";
 		echo "Mime-Version: 1.0";
