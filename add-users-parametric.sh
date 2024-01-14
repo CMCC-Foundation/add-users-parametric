@@ -3,8 +3,8 @@ IFS=$'\n'
 SEP=';'
 SEP_GROUPS=','
 
-date_keyword="date"
 pwd_keyword="password"
+none_keyword="None" # just like Python
 pwd_len=10
 docx_filename="CMCC_VPN_account_username_GROUP_script.docx" #"Juno_account_username_DIVISION_script.docx"
 in_file="$1"
@@ -15,13 +15,6 @@ out_dir_name="users_""$(date '+%Y-%m-%d')""_$(od -vAn -N1 -td1 < /dev/urandom | 
 mkdir -p "$out_dir_name"
 
 stage_file_loc="$out_dir_name""/""$stage_file"
-stage_file_loc_2="$out_dir_name""/""$stage_file""_2"
-
-#sed -i "s/,$date_keyword,/,$(date '+%Y-%m-%d'),/g" "$in_file"
-sed "s/;$date_keyword;/;$(date '+%Y-%m-%d');/g" "$in_file" > "$stage_file_loc"
-sed -i "s/;;;;/;$(date '+%Y-%m-%d');None;None;/g" "$stage_file_loc"
-sed -i "s/;;;/;None;None;/g" "$stage_file_loc"
-#sed -i "s/;;/;None;/g" "$stage_file_loc"
 
 cnt_file=0
 
@@ -33,10 +26,10 @@ IDMTODB_IGNORE_DIVISION_GROUP_NAME=${6:-"0"}
 IDMTODB_MAX_USERS=${7:-"1000"}
 
 
-cat "$stage_file_loc" | head -n1 > "$stage_file_loc_2"
+cat "$in_file" | head -n1 > "$stage_file_loc"
 
-for line in $(tail "$stage_file_loc" -n+2); do
-    
+for line in $(tail "$in_file" -n+2); do
+    line_2=""
     echo "*************************************************"
     IFS=' '
     cnt_file=$(($cnt_file+1))
@@ -54,15 +47,12 @@ for line in $(tail "$stage_file_loc" -n+2); do
     	if [[ "$last" != "project account" ]];
 	then
 		username=$(echo "${first:0:1}""${last:0:1}""$(date +%j%y)" | tr '[:upper:]' '[:lower:]' )
-		echo "$username""$line" >> "$stage_file_loc_2"
 	elif [[ ! -z "$first" ]];
 	then
 		username="$first"
 	else
 		echo "ERROR project account cannot have blank username." >&2
 	fi
-    else	
-	echo "$line" >> "$stage_file_loc_2"
     fi
 
     # Not collecting encrypted password because we need cleartext password to create kerberos key
@@ -70,7 +60,8 @@ for line in $(tail "$stage_file_loc" -n+2); do
     gid=$(echo $line|cut -f5 -d"$SEP")
 
     no_group_signal=0
-    groups=($(echo $line|cut -f6 -d"$SEP" | tr "$SEP_GROUPS" ' '))
+    group_names=$(echo $line|cut -f6 -d"$SEP")
+    groups=($(echo "$group_names" | tr "$SEP_GROUPS" ' '))
 
     for group_name in ${groups[@]};
     do
@@ -94,24 +85,18 @@ for line in $(tail "$stage_file_loc" -n+2); do
 	    continue
     fi
 
-    creation_date=$(echo $line |cut -f7 -d"$SEP")
-
-    if [[ "$creation_date" = "None" ]] || [[ "$creation_date" = "" ]];then
-        creation_date=$(date '+%Y-%m-%d')
-    fi
-
-    tmp_expdate=$(echo $line|cut -f8 -d"$SEP")
-    vpn_tmp_expdate=$(echo $line|cut -f9 -d"$SEP")
+    tmp_expdate=$(echo $line|cut -f7 -d"$SEP")
+    vpn_tmp_expdate=$(echo $line|cut -f8 -d"$SEP")
 
     if [[ "$tmp_expdate" = "None" ]] || [[ "$tmp_expdate" = "" ]];then
         expdate=""
     else
-        expdate=$(echo $line|cut -f8 -d"$SEP")'T00:00Z'
+        expdate=$(echo $line|cut -f7 -d"$SEP")'T00:00Z'
     fi
 
     #echo $expdate
 
-    email=$(echo $line|cut -f11 -d"$SEP")
+    email=$(echo $line|cut -f9 -d"$SEP")
     
     name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
 
@@ -122,27 +107,11 @@ for line in $(tail "$stage_file_loc" -n+2); do
     
     shell="/bin/bash"
     gecos=$(echo $first" "$last )
-
-    pwd_tmp=$(echo $line|cut -f14 -d"$SEP")
-    pwd=$(if [[ "$pwd_tmp" == "$pwd_keyword" ]]; then echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'); else echo "$pwd_tmp"; fi)
-    #echo "PWD is: ""$pwd"
-    #continue
-    #exit
+ 
+    pwd=$(echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'))
     
-    
-    mach=$(echo $line|cut -f15 -d"$SEP")
-
-    #first=$(echo $gecos| cut -d' ' -f1 )
-    #last=$(echo $gecos| cut -d' ' -f 2- )
-
-    #pass=$( tr -cd '[:alnum:]' < /dev/urandom | fold -w8| head -1 )
-
-    # Now create this entry
-
-    #echo "ipa user-add $username --first=$first --last=$last --gidnumber=$gid --uid=$uid --gecos=\"$gecos\" --homedir=\"/users_home/$div/$username\" --shell=$shell --email=$email --user-auth-type=otp --random --principal-expiration=$expdate"
-    #echo "ipa otptoken-add --type=totp --owner=$username"
-
-    #echo $uid, $gid, $first, $last, $div, $email, $expadate
+    mach=$(echo $line|cut -f10 -d"$SEP")
+    notify=$(echo $line| cut -f11 -d"$SEP")
 
     echo "USERNAME: ""$username"
     echo "FIRST: ""$first"
@@ -162,22 +131,6 @@ for line in $(tail "$stage_file_loc" -n+2); do
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
     echo "MACH: ""$mach"
-
-    #echo "PASS PRE"
-    
-    #if [[ "$group_name" != "$div" ]];
-    #then
-    #    ipa group-add-member "$group_name" --users="$username" 1>/dev/null
-    #
-    #    if [[ "$?" != "0" ]];
-    #    then
-    #        echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$group_name""\" group." >&2
-    #        continue
-    #    fi
-    #fi
-
-    #echo "PASS POST"
-    #continue
 
     ipa user-find --uid="$uid" 1>/dev/null
 
@@ -211,7 +164,12 @@ for line in $(tail "$stage_file_loc" -n+2); do
 	if [[ ! -z "$issuer" ]];
 	then
         	scp "$docx_filename_out" "root@sccdb.cmcc.scc":"/root/gdrive_API/files/"
-		ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log ; cat files/$out_dir_name/drive_api_log"
+		if [[ "$notify" -eq 1 ]] || [[ ! -z "$notify" ]];
+		then
+			ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log ; cat files/$out_dir_name/drive_api_log ; ./send_user_mail.sh $(echo ${issuer:0:1} | tr '[:lower:]' '[:upper:]')$(echo ${issuer:1:${#issuer}} | cut -d'_' -f1) $first $username $email $(echo $div | tr '[:lower:]' '[:upper:]') files/$out_dir_name/$(echo $docx_filename_out | cut -d'/' -f2 | cut -d'.' -f1).pdf $mach"
+		else
+			ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log ; cat files/$out_dir_name/drive_api_log"
+		fi
 	fi
 
         #ipa otptoken-add --type=totp --owner=sysm07 | grep URI | sed 's/  URI: //g'
@@ -219,10 +177,12 @@ for line in $(tail "$stage_file_loc" -n+2); do
         echo "Error [""$?""] while creating the user!"
         continue
     fi
+    
     #### END
 
     #echo $pwd
     #echo $expdate
+
 
     #### BEGIN
     echo "*************************************************" >> "$out_dir_name"/"$in_file""_logs"
@@ -290,33 +250,13 @@ for line in $(tail "$stage_file_loc" -n+2); do
 
     ipa group-add-member "registry" --users="$username" 1>/dev/null
 
-    #ipa group-add-member "$div" --users="$username" 1>/dev/null
-
-    #if [[ "$?" != "0" ]];
-    #then
-    #    echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$div""\" group." >&2
-    #    continue
-    #fi
-
-    #if [[ "$group_name" != "$div" ]];
-    #then
-    #    ipa group-add-member "$group_name" --users="$username" 1>/dev/null
-
-    #    if [[ "$?" != "0" ]];
-    #    then
-    #        echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$group_name""\" group." >&2
-    #        continue
-    #    fi
-    #fi
-
-    ####
-
     echo "*************************************************"
-	#ipa user-show $username
-	#cnt_file=$(($cnt_file+1))
+
+    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names"",registry""$SEP""$(date '+%Y-%m-%d')""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP"$(date '+%Y-%m-%d' -d'+6 months')"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
+
 done
 
-mv "$stage_file_loc_2" "$stage_file_loc"
+#mv "$stage_file_loc_2" "$stage_file_loc"
 
 # IDMTODB Consistency
 ../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
