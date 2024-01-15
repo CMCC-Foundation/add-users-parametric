@@ -1,8 +1,8 @@
 #!/bin/bash
 
 USERSIDM_SERVER=${8:-"127.0.0.1"}
-USERSIDM_USER=${9:-"root"}
-USERSIDM_PASSWORD="root" #"root"
+USERSIDM_USER=${9:-"sysm01"}
+USERSIDM_PASSWORD="960coreP6" #"root"
 USERSIDM_DATABASE="idmdb"
 
 issuer="$1"
@@ -78,6 +78,7 @@ else
         fi
 fi
 
+#HSM_MAIL="hsm@cmcc.it"
 MAIL_CMD=${8:-"/usr/sbin/sendmail"}
 #it doesn't work with the current SMTP relay
 MAIL_FROM=${9:-"hsm@cmcc.it"} #"marco_chiarelli@yahoo.it"} #"marcochiarelli.nextgenlab@gmail.com"} #"monitoring-scc@cmcc.it"}
@@ -104,7 +105,7 @@ then
                 echo "Content-Type: text/html; charset=ISO-8859-15";
                 echo "Content-Transfer-Encoding: 7bit";
                 echo ""; 
-                echo -e "<html><body>work in progress waiting for ITA-EN translation</body></html>";
+		echo -e "<html><body>Car$(echo ${name:${#name}:${#name}}) $name,<br><br>ti informo che abbiamo attivato il tuo account per accedere al servizio VPN del CMCC.<br><br>Tale account ti consentirà di accedere all’applicazione SAP nei seguenti due casi particolari:<br><br>1) il tuo computer accede alla rete tramite la Wi-Fi “CMCC” (n.b. la rete wi-fi “CMCC-Guest” non è abilitata per accedere a SAP)<br><br>2) quando lavori da remoto (smart-working o in missione in altra sede CMCC).<br><br>Non è necessario installare ed attivare la connessione VPN quando lavori dalla tua postazione fissa collegata alla rete in modalità wired.<br><br>Per accedere al servizio VPN, è necessario installare sul tuo computer un client VPN (client VPN Forcepoint) e disporre delle tue credenziali personali.<br><br>Per scaricare il file pdf con le tue credenziali, accedi alla seguente cartella personale (per l’accesso devi usare le credenziali mail CMCC):<br><br><a href=\"$link\">$link</a><br><br>Le istruzione per installare e configurare il client VPN sono disponibili nella cartella condivisa al seguente link:<br><br><a href=\"$vpn_user_guides_link\">$vpn_user_guides_link</a><br><br>Per qualsiasi problema di connettività al servizio VPN, contatta <a href=\"mailto:$HSM_MAIL_CC\">$HSM_MAIL_CC</a><br><br>Un caro saluto,<br>$issuer<br>HSM Staff<br><br><br></body></html>";
 	) | "$MAIL_CMD" -t "$email"
 else
 	#mach_lower="$(echo ${mach:0:1} | tr '[:lower:]' '[:upper:]')""$(echo ${mach:1:${#mach}})"

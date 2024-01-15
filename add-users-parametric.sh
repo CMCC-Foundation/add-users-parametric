@@ -252,11 +252,11 @@ for line in $(tail "$in_file" -n+2); do
 
     echo "*************************************************"
 
-    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names"",registry""$SEP""$(date '+%Y-%m-%d')""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP"$(date '+%Y-%m-%d' -d'+6 months')"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
+    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names"",registry""$SEP""$(date '+%Y-%m-%d')""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP"$(date '+%Y-%m-%d' -d'+6 months')"$SEP"$(if [[ "$notify" -eq 1 ]] || [[ ! -z "$notify" ]]; then echo $(date '+%Y-%m-%d'); else "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
 
 done
 
 #mv "$stage_file_loc_2" "$stage_file_loc"
 
 # IDMTODB Consistency
-../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
+#../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
