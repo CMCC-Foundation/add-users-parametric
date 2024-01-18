@@ -25,6 +25,7 @@ IDMTODB_IGNORE_GROUPS=${5:-"0"} #1"}
 IDMTODB_IGNORE_DIVISION_GROUP_NAME=${6:-"0"}
 IDMTODB_MAX_USERS=${7:-"1000"}
 
+SCCDB_HOST="sccdb.cmcc.scc"
 
 cat "$in_file" | head -n1 > "$stage_file_loc"
 
@@ -160,16 +161,11 @@ for line in $(tail "$in_file" -n+2); do
 	docx_filename_out="$out_dir_name"/"CMCC_VPN_account_""$username""_""$(echo $div | tr '[:lower:]' '[:upper:]')"".docx"
         #docx_filename_out="$out_dir_name"/"CMCC_VPN_account_""$username"".docx"
 	./find_and_replace_docx.sh "$docx_filename" "$docx_filename_out" '%NAME% %SURNAME% %USERNAME% %PASSWORD% %SECRET%' "$packed_docx_args"
-        
+       
 	if [[ ! -z "$issuer" ]];
 	then
-        	scp "$docx_filename_out" "root@sccdb.cmcc.scc":"/root/gdrive_API/files/"
-		if [[ "$notify" -eq 1 ]] || [[ ! -z "$notify" ]];
-		then
-			ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log ; cat files/$out_dir_name/drive_api_log ; ./send_user_mail.sh $(echo ${issuer:0:1} | tr '[:lower:]' '[:upper:]')$(echo ${issuer:1:${#issuer}} | cut -d'_' -f1) $first $username $email $(echo $div | tr '[:lower:]' '[:upper:]') files/$out_dir_name/$(echo $docx_filename_out | cut -d'/' -f2 | cut -d'.' -f1).pdf $mach"
-		else
-			ssh -l root "sccdb.cmcc.scc" "source /root/gdrive_API/gdrive_venv/bin/activate; cd /root/gdrive_API; mkdir -p files/$out_dir_name ; mv files/$(echo $docx_filename_out | cut -d'/' -f2) files/$docx_filename_out ; python3 upload_docx_convert_to_pdf.py files/$docx_filename_out $name_dot_surname $email $issuer >> files/$out_dir_name/drive_api_log ; cat files/$out_dir_name/drive_api_log"
-		fi
+        	scp "$docx_filename_out" "root@""$SCCDB_HOST":"/root/gdrive_API/files/"
+		ssh -l root "$SCCDB_HOST" "cd /root/gdrive_API ; ./dexter_fan_in.sh $notify $out_dir_name $docx_filename_out $name_dot_surname $email $issuer $first $username $div $mach"
 	fi
 
         #ipa otptoken-add --type=totp --owner=sysm07 | grep URI | sed 's/  URI: //g'
@@ -232,6 +228,12 @@ for line in $(tail "$in_file" -n+2); do
     for group_name in ${groups[@]};
     do
 	cnt=$(($cnt+1))
+
+	if [[ "$group_name" == "$mach""-users" ]];
+	then
+		continue
+	fi
+
 	if [[ "${groups[$cnt]}" != "${groups[$(($cnt-1))]}" ]];
 	then
         	ipa group-add-member "$group_name" --users="$username" 1>/dev/null
@@ -252,7 +254,17 @@ for line in $(tail "$in_file" -n+2); do
 
     echo "*************************************************"
 
-    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names"",registry""$SEP""$(date '+%Y-%m-%d')""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP"$(date '+%Y-%m-%d' -d'+6 months')"$SEP"$(if [[ "$notify" -eq 1 ]] || [[ ! -z "$notify" ]]; then echo $(date '+%Y-%m-%d'); else "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
+    if [[ -z "$(echo $group_names | grep registry)" ]];
+    then
+	    group_names="$group_names"",registry"
+    fi
+
+    if [[ -z "$(echo $group_names | grep ipausers)" ]];
+    then
+    	    group_names="$group_names"",ipausers"
+    fi
+
+    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names""$SEP""$(date '+%Y-%m-%d')""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP"$(date '+%Y-%m-%d' -d'+6 months')"$SEP"$(if [[ "$notify" -eq 1 ]] || [[ ! -z "$notify" ]]; then echo $(date '+%Y-%m-%d'); else "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
 
 done
 
