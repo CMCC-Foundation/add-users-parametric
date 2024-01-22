@@ -2,6 +2,7 @@
 IFS=$'\n'
 SEP=';'
 SEP_GROUPS=','
+SEP_MACHINES=','
 
 parent_folder="cmcc"
 pwd_keyword="password"
@@ -112,7 +113,9 @@ for line in $(tail "$in_file" -n+2); do
  
     pwd=$(echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'))
     
-    mach=$(echo $line|cut -f10 -d"$SEP")
+    mach_names=$(echo $line|cut -f10 -d"$SEP")
+    machs=($(echo $mach_names | tr "$SEP_MACHINES" ' ')) 
+    
     notify=$(echo $line| cut -f11 -d"$SEP")
 
     echo "USERNAME: ""$username"
@@ -132,7 +135,7 @@ for line in $(tail "$in_file" -n+2); do
     echo "EMAIL: ""$email"
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
-    echo "MACH: ""$mach"
+    echo "MACH: ""${machs[0]}"
 
     ipa user-find --uid="$uid" 1>/dev/null
 
@@ -186,43 +189,46 @@ for line in $(tail "$in_file" -n+2); do
     #### END
 
 
-    if [[ "$mach" != "" ]];
-    then
-    	mach_users="$mach""-users"
-
-     #continue
-    	#### PARTE INSERIMENTO GRUPPI
-    	ipa group-add-member "$mach_users" --users="$username" 1>/dev/null
-
-    	if [[ "$?" != "0" ]];
+    for mach in ${machs[@]};
+    do
+    	if [[ "$mach" != "" ]];
     	then
-        	echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_users""\" group." >&2
-        	continue
-    	fi
+    		mach_users="$mach""-users"
 
-    	mach_ext="$mach""-ext"
-    	mach_cmcc="$mach""-cmcc"
+     		#continue
+    		#### PARTE INSERIMENTO GRUPPI
+    		ipa group-add-member "$mach_users" --users="$username" 1>/dev/null
 
-	group_name="${group_name[1]}"
-	division="$div"
-
-    	if [[ "$group_name" != "$mach_ext" ]] && [[ "$division" != "$mach_ext" ]]; # decidere se "mach-ext" sarà indicato su division o group_name
-    	then
-        	ipa group-add-member "$mach_cmcc" --users="$username" 1>/dev/null
-     		if [[ "$?" != "0" ]];
-     		then
-            		echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_cmcc""\" group." >&2
-            		continue
+    		if [[ "$?" != "0" ]];
+    		then
+        		echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_users""\" group." >&2
+        		continue
     		fi
-    	else
-        	ipa group-add-member "$mach_ext" --users="$username" 1>/dev/null
-        	if [[ "$?" != "0" ]];
-        	then
-            		echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_ext""\" group." >&2
-            		continue
-        	fi
+
+    		mach_ext="$mach""-ext"
+    		mach_cmcc="$mach""-cmcc"
+
+		group_name="${group_name[1]}"
+		division="$div"
+
+    		if [[ "$group_name" != "$mach_ext" ]] && [[ "$division" != "$mach_ext" ]]; # decidere se "mach-ext" sarà indicato su division o group_name
+    		then
+        		ipa group-add-member "$mach_cmcc" --users="$username" 1>/dev/null
+     			if [[ "$?" != "0" ]];
+     			then
+            			echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_cmcc""\" group." >&2
+            			continue
+    			fi
+    		else
+        		ipa group-add-member "$mach_ext" --users="$username" 1>/dev/null
+        		if [[ "$?" != "0" ]];
+        		then
+            			echo "ERROR: [""$username"", line ""$(($cnt_file+1))""]: Failed to add ""$username"" user to the \"""$mach_ext""\" group." >&2
+            			continue
+        		fi
+    		fi
     	fi
-    fi
+    done
 
     cnt=0
 
