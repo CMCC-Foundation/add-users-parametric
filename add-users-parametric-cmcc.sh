@@ -115,7 +115,8 @@ for line in $(tail "$in_file" -n+2); do
     
     mach_names=$(echo $line|cut -f10 -d"$SEP")
     machs=($(echo $mach_names | tr "$SEP_MACHINES" ' ')) 
-    
+    mach="${machs[0]}"
+
     notify=$(echo $line| cut -f11 -d"$SEP")
 
     echo "USERNAME: ""$username"
@@ -135,7 +136,7 @@ for line in $(tail "$in_file" -n+2); do
     echo "EMAIL: ""$email"
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
-    echo "MACH: ""${machs[0]}"
+    echo "MACH: ""$mach"
 
     ipa user-find --uid="$uid" 1>/dev/null
 
@@ -273,7 +274,7 @@ for line in $(tail "$in_file" -n+2); do
 
     curdate="$(date '+%Y-%m-%d')"
 
-    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names""$SEP""$curdate""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP""$curdate""$SEP"$(if [[ "$notify" -eq 1 ]] || [[ ! -z "$notify" ]]; then echo $(date '+%Y-%m-%d'); else echo "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
+    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names""$SEP""$curdate""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP""$curdate""$SEP"$(if [[ "$notify" -eq 1 ]]; then echo $(date '+%Y-%m-%d'); else echo "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
 
 done
 
