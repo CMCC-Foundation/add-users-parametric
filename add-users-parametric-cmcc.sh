@@ -32,7 +32,7 @@ SCCDB_HOST="sccdb.cmcc.scc"
 cat "$in_file" | head -n1 > "$stage_file_loc"
 
 for line in $(tail "$in_file" -n+2); do
-    line_2=""
+  
     echo "*************************************************"
     IFS=' '
     cnt_file=$(($cnt_file+1))
@@ -94,7 +94,7 @@ for line in $(tail "$in_file" -n+2); do
     if [[ "$tmp_expdate" = "None" ]] || [[ "$tmp_expdate" = "" ]];then
         expdate=""
     else
-        expdate=$(echo $line|cut -f7 -d"$SEP")'T00:00Z'
+        expdate="$tmp_expdate"'T00:00Z'
     fi
 
     #echo $expdate
@@ -118,6 +118,7 @@ for line in $(tail "$in_file" -n+2); do
     mach="${machs[0]}"
 
     notify=$(echo $line| cut -f11 -d"$SEP")
+    vpn_notify=$(echo $line| cut -f12 -d"$SEP")
 
     echo "USERNAME: ""$username"
     echo "FIRST: ""$first"
@@ -132,11 +133,13 @@ for line in $(tail "$in_file" -n+2); do
     echo "GROUPS: ""$groups"
     echo "CREATION_DATE: ""$creation_date"
     echo "EXPIRATION_DATE: ""$tmp_expdate"
-    echo "VPN_EXPIRATION_DATE: ""$vpn_tmp_expdate"
+    #echo "VPN_EXPIRATION_DATE: ""$vpn_tmp_expdate"
     echo "EMAIL: ""$email"
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
     echo "MACH: ""$mach"
+    echo "NOTIFY: ""$notify"
+    echo "VPN NOTIFY: ""$vpn_notify"
 
     ipa user-find --uid="$uid" 1>/dev/null
 
@@ -170,7 +173,7 @@ for line in $(tail "$in_file" -n+2); do
 	if [[ ! -z "$issuer" ]];
 	then
         	scp "$docx_filename_out" "root@""$SCCDB_HOST":"/root/gdrive_API/files/"
-		ssh -l root "$SCCDB_HOST" "cd /root/gdrive_API ; ./dexter_fan_in.sh $notify $out_dir_name $docx_filename_out $name_dot_surname $email $issuer $first $username $div $mach"
+		ssh -l root "$SCCDB_HOST" "cd /root/gdrive_API ; ./dexter_fan_in.sh $out_dir_name $docx_filename_out $name_dot_surname $email $issuer $first $username $div $mach $notify $vpn_notify"
 	fi
 
         #ipa otptoken-add --type=totp --owner=sysm07 | grep URI | sed 's/  URI: //g'
