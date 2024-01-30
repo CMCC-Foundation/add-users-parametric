@@ -88,18 +88,19 @@ for line in $(tail "$in_file" -n+2); do
 	    continue
     fi
 
-    tmp_expdate=$(echo $line|cut -f7 -d"$SEP")
-    vpn_tmp_expdate=$(echo $line|cut -f8 -d"$SEP")
+    tmp_exp_date=$(echo $line|cut -f7 -d"$SEP")
+    #vpn_exp_date=$(echo $line|cut -f8 -d"$SEP")
 
-    if [[ "$tmp_expdate" = "None" ]] || [[ "$tmp_expdate" = "" ]];then
-        expdate=""
+    if [[ "$tmp_exp_date" = "None" ]] || [[ "$tmp_exp_date" = "" ]];
+    then
+        exp_date=""
     else
-        expdate="$tmp_expdate"'T00:00Z'
+        exp_date="$tmp_exp_date"'T00:00Z'
     fi
 
-    #echo $expdate
+    #echo $exp_date
 
-    email=$(echo $line|cut -f9 -d"$SEP")
+    email=$(echo $line|cut -f8 -d"$SEP")
     
     name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
 
@@ -113,12 +114,12 @@ for line in $(tail "$in_file" -n+2); do
  
     pwd=$(echo $(export AUP_PWD_LEN=$pwd_len; python3 -c 'import os; import random; import string; print("".join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits[1:] + string.digits[1:]) for _ in range(int(os.getenv("AUP_PWD_LEN")))))'))
     
-    mach_names=$(echo $line|cut -f10 -d"$SEP")
+    mach_names=$(echo $line|cut -f9 -d"$SEP")
     machs=($(echo $mach_names | tr "$SEP_MACHINES" ' ')) 
     mach="${machs[0]}"
 
-    notify=$(echo $line| cut -f11 -d"$SEP")
-    vpn_notify=$(echo $line| cut -f12 -d"$SEP")
+    notify=$(echo $line| cut -f10 -d"$SEP")
+    vpn_notify=$(echo $line| cut -f11 -d"$SEP")
 
     echo "USERNAME: ""$username"
     echo "FIRST: ""$first"
@@ -132,8 +133,8 @@ for line in $(tail "$in_file" -n+2); do
     fi
     echo "GROUPS: ""$groups"
     echo "CREATION_DATE: ""$creation_date"
-    echo "EXPIRATION_DATE: ""$tmp_expdate"
-    #echo "VPN_EXPIRATION_DATE: ""$vpn_tmp_expdate"
+    echo "EXPIRATION_DATE: ""$exp_date"
+    #echo "VPN_EXPIRATION_DATE: ""$vpn_exp_date"
     echo "EMAIL: ""$email"
     echo "GECOS: ""$gecos"
     echo "PSW: ""$pwd" 
@@ -150,11 +151,11 @@ for line in $(tail "$in_file" -n+2); do
     fi
 
      #### BEGIN
-    #echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --homedir="/users_home/$div/$username" --shell="$shell" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
+    #echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --homedir="/users_home/$div/$username" --shell="$shell" --email=$email --user-auth-type=otp --principal-expiration=$exp_date >> "$out_dir_name"/"$in_file""_logs"
     if [[ "$mach" != "" ]]; then
-	echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --homedir="/users_home/$parent_folder/$username" --shell="$shell" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
+	echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --homedir="/users_home/$parent_folder/$username" --shell="$shell" --email=$email --user-auth-type=otp --principal-expiration=$exp_date >> "$out_dir_name"/"$in_file""_logs"
     else
-        echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --email=$email --user-auth-type=otp --principal-expiration=$expdate >> "$out_dir_name"/"$in_file""_logs"
+        echo $pwd | ipa user-add $username --first="$first" --last="$last" --password --gidnumber=$gid --uid=$uid --gecos="$gecos" --email=$email --user-auth-type=otp --principal-expiration=$exp_date >> "$out_dir_name"/"$in_file""_logs"
     fi
     if (( $? == 0 ));then
         echo "  Password for $username is: $pwd" >> "$out_dir_name"/"$in_file""_logs"
@@ -185,7 +186,7 @@ for line in $(tail "$in_file" -n+2); do
     #### END
 
     #echo $pwd
-    #echo $expdate
+    #echo $exp_date
 
 
     #### BEGIN
@@ -277,7 +278,7 @@ for line in $(tail "$in_file" -n+2); do
 
     curdate="$(date '+%Y-%m-%d')"
 
-    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names""$SEP""$curdate""$SEP""$tmp_expdate""$SEP""$vpn_tmp_expdate""$SEP""$curdate""$SEP"$(if [[ "$notify" -eq 1 ]]; then echo $(date '+%Y-%m-%d'); else echo "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
+    echo "$username""$SEP""$first""$SEP""$last""$SEP""$uid""$SEP""$gid""$SEP""$group_names""$SEP""$curdate""$SEP""$tmp_exp_date""$SEP""$none_keyword""$SEP""$curdate""$SEP"$(if [[ "$notify" -eq 1 ]]; then echo $(date '+%Y-%m-%d'); else echo "$none_keyword"; fi )"$SEP""$email""$SEP""$none_keyword""$SEP""0""$SEP""$pwd_keyword""$SEP""$mach" >> "$stage_file_loc"
 
 done
 

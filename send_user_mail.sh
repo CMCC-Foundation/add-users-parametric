@@ -1,8 +1,9 @@
 #!/bin/bash
 
-USERSIDM_SERVER=${13:-"localhost"}
-USERSIDM_USER=${14:-"root"}
-USERSIDM_PASSWORD="root" #"root"
+CC_DIVISIONS_DIRECTORS=${13:-"0"}
+USERSIDM_SERVER=${14:-"127.0.0.1"}
+USERSIDM_USER=${15:-"sysm01"}
+USERSIDM_PASSWORD="960coreP6" #"root"
 USERSIDM_DATABASE="idmdb"
 
 issuer="$1"
@@ -95,7 +96,10 @@ then
                 echo "Subject: Notifica attivazione account VPN CMCC";
                 echo "From: $MAIL_FROM";
                 echo "To: $email";
-                #echo "Cc: $smg_mail, $HSM_MAIL_CC";
+		if [[ "$CC_DIVISIONS_DIRECTORS" -ne 0 ]];
+		then
+                	echo "Cc: $smg_mail, $HSM_MAIL_CC";
+		fi
 		#echo "Cc: $HSM_MAIL_CC";
                 #echo "Mime-Version: 1.0";
                 echo "Content-Type: multipart/related; boundary=\"boundary-example\"; type=\"text/html\"";
@@ -120,7 +124,10 @@ else
                 echo "Subject: VPN account activation notification (CMCC)";
                 echo "From: $MAIL_FROM";
                 echo "To: $email";
-                #echo "Cc: $division_director_mail, $HSM_MAIL_CC";
+		if [[ "$CC_DIVISIONS_DIRECTORS" -ne 0 ]];
+                then
+                	echo "Cc: $division_director_mail, $HSM_MAIL_CC";
+		fi
                 #echo "Cc: $HSM_MAIL_CC";
                 #echo "Mime-Version: 1.0";
                 echo "Content-Type: multipart/related; boundary=\"boundary-example\"; type=\"text/html\"";
@@ -143,8 +150,10 @@ else
 		echo "Subject: $mach_upper account activation notification (username $username)";
        		echo "From: $MAIL_FROM";
        		echo "To: $email";
-		#echo "Cc: marco_chiarelli@yahoo.it";
-		#echo "Cc: $division_director_mail, $HSM_MAIL_CC";
+		if [[ "$CC_DIVISIONS_DIRECTORS" -ne 0 ]];
+                then	
+			echo "Cc: $division_director_mail, $HSM_MAIL_CC";
+		fi
 		#echo "Cc: $HSM_MAIL_CC";
 		echo "Mime-Version: 1.0";
        		echo "Content-Type: multipart/related; boundary=\"boundary-example\"; type=\"text/html\"";
