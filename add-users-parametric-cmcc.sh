@@ -174,7 +174,7 @@ for line in $(tail "$in_file" -n+2); do
 	if [[ ! -z "$issuer" ]];
 	then
         	scp "$docx_filename_out" "root@""$SCCDB_HOST":"/root/gdrive_API/files/"
-		ssh -l root "$SCCDB_HOST" "cd /root/gdrive_API ; ./dexter_fan_in.sh $out_dir_name $docx_filename_out $name_dot_surname $email $issuer $first $username $div $mach $notify $vpn_notify"
+		ssh -l root "$SCCDB_HOST" "cd /root/gdrive_API ; ./dexter_fan_in.sh $out_dir_name $docx_filename_out $name_dot_surname $email $issuer $first $username $div $notify $vpn_notify $mach"
 	fi
 
         #ipa otptoken-add --type=totp --owner=sysm07 | grep URI | sed 's/  URI: //g'
@@ -285,4 +285,4 @@ done
 #mv "$stage_file_loc_2" "$stage_file_loc"
 
 # IDMTODB Consistency
-../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
+#../idmtodb/idmtodb_launcher_users.sh "$IDMTODB_PROMPT_ON_INSERT" "$IDMTODB_PROMPT_ON_UPDATE" "$IDMTODB_PROMPT_ON_DELETE" "$IDMTODB_IGNORE_GROUPS" "$IDMTODB_IGNORE_DIVISION_GROUP_NAME" "$IDMTODB_MAX_USERS" "$stage_file_loc"
