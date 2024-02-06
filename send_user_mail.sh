@@ -2,8 +2,9 @@
 
 CC_DIVISIONS_DIRECTORS=${13:-"0"}
 SEND_TO_REAL_EMAIL=${14:-"0"} #"1"}
-USERSIDM_SERVER=${15:-"127.0.0.1"}
-USERSIDM_USER=${16:-"root"}
+DEBUG_MODE=${15:-"0"} #"1"}
+USERSIDM_SERVER=${16:-"127.0.0.1"}
+USERSIDM_USER=${17:-"root"}
 USERSIDM_PASSWORD="root"
 USERSIDM_DATABASE="idmdb"
 
@@ -79,17 +80,25 @@ then
 fi
 
 HSM_MAIL="hsm@cmcc.it"
+DEBUG_MAIL="marco_chiarelli@yahoo.it" #"marcochiarelli.nextgenlab@gmail.com"
 MAIL_CMD=${10:-"/usr/sbin/sendmail"}
 #it doesn't work with the current SMTP relay
 MAIL_FROM=${11:-"$HSM_MAIL"} #"marco_chiarelli@yahoo.it"} #"marcochiarelli.nextgenlab@gmail.com"} #"monitoring-scc@cmcc.it"}
-HSM_MAIL_CC=${12:-"$HSM_MAIL"}
+#HSM_MAIL_CC=${12:-"$HSM_MAIL"}
 
 mach="$9"
 vpn_notification="$8"
 
 if [[ "$SEND_TO_REAL_EMAIL" -eq 0 ]];
 then
-	email="$HSM_MAIL" #"marco_chiarelli@yahoo.it"
+	if [[ "$DEBUG_MODE" -eq 0 ]];
+	then
+		email="$HSM_MAIL" #"marco_chiarelli@yahoo.it"
+		HSM_MAIL_CC=${12:-"$HSM_MAIL"}
+	else
+		email="$DEBUG_MAIL"
+		HSM_MAIL_CC=${12:-"$DEBUG_MAIL"}
+	fi
 fi
 
 if [[ -z "$mach" ]];
