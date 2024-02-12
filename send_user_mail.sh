@@ -4,8 +4,8 @@ CC_DIVISIONS_DIRECTORS=${13:-"0"}
 SEND_TO_REAL_EMAIL=${14:-"0"} #"1"}
 DEBUG_MODE=${15:-"0"} #"1"}
 USERSIDM_SERVER=${16:-"127.0.0.1"}
-USERSIDM_USER=${17:-"root"}
-USERSIDM_PASSWORD="root"
+USERSIDM_USER=${17:-"sysm01"}
+USERSIDM_PASSWORD="960coreP6" #"root"
 USERSIDM_DATABASE="idmdb"
 
 issuer="$1"
@@ -123,10 +123,10 @@ then
                 echo "Content-Type: text/html; charset=utf-8"; #ISO-8859-15";
                 echo "Content-Transfer-Encoding: 7bit";
                 echo ""; 
-		echo -e "<html><body>Car$(echo ${name:$((${#name}-1)):${#name}}) $name,<br><br>ti informo che abbiamo attivato il tuo account per accedere al servizio VPN del CMCC.<br><br>Tale account ti consentirà di accedere all’applicazione SAP nei seguenti due casi particolari:<br><br>";
-	        echo -e "1) il tuo computer accede alla rete tramite la Wi-Fi “CMCC” (n.b. la rete wi-fi “CMCC-Guest” non è abilitata per accedere a SAP)<br><br>2) quando lavori da remoto (smart-working o in missione in altra sede CMCC).<br><br>";
-		echo -e "Non è necessario installare ed attivare la connessione VPN quando lavori dalla tua postazione fissa collegata alla rete in modalità wired.<br><br>Per accedere al servizio VPN, è necessario installare sul tuo computer un client VPN (client VPN Forcepoint) e disporre delle tue credenziali personali.<br><br>";
-		echo "Per scaricare il file pdf con le tue credenziali, accedi alla seguente cartella personale (per l’accesso devi usare le credenziali mail CMCC):<br><br><a href=\"$link\">$link</a><br><br>";
+		echo -e "<html><body>Car$(echo ${name:$((${#name}-1)):${#name}}) $name,<br><br>Ti informo che abbiamo attivato il tuo account per accedere al servizio <b>VPN</b> del CMCC.<br><br>Tale servizio ti consentirà di accedere all’applicazione SAP da qualsiasi luogo di lavoro (in sede o fuori sede in smart-working o missione).<br><br>";
+	        echo -e "<b>N.B. per gli utenti della sede di Lecce</b><br>l'accesso alla VPN è consentito solo tramite la Wi-Fi “CMCC” (n.b. la rete wi-fi “CMCC-Guest” <u>non è abilitata</u> per accedere a SAP).<br><br>";
+		echo -e "Per accedere al servizio VPN, è necessario installare sul tuo computer un client VPN (client VPN Forcepoint) e disporre delle tue credenziali personali.<br><br>";
+		echo "Per scaricare il file pdf con le tue credenziali, accedi alla seguente cartella <u>personale</u> (per l’accesso devi usare le credenziali mail CMCC):<br><br><a href=\"$link\">$link</a><br><br>";
 		echo "Le istruzioni per installare e configurare il client VPN sono disponibili nella cartella condivisa al seguente link:<br><br><a href=\"$vpn_user_guides_link\">$vpn_user_guides_link</a><br><br>";
 		echo "Per qualsiasi problema di connettività al servizio VPN, contatta <a href=\"mailto:$HSM_MAIL_CC\">$HSM_MAIL_CC</a><br><br>Un caro saluto,<br>$issuer<br>HSM Team<br><br><br></body></html>";
 	) | "$MAIL_CMD" -t "$email"
@@ -136,7 +136,7 @@ else
 	then
 		vpn_user_guides_link="https://drive.google.com/drive/folders/1JRYv7nX2fW94hVr8SWal27aGl80GPF1o"
 		(
-               		echo "Subject: New CMCC VPN service annoucement and account activation notification";
+               		echo "Subject: New CMCC VPN service announcement and account activation notification";
                 	echo "From: $MAIL_FROM";
                 	echo "To: $email";
                 	if [[ "$CC_DIVISIONS_DIRECTORS" -ne 0 ]];
