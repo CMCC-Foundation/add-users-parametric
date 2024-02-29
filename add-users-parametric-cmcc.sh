@@ -101,8 +101,13 @@ for line in $(tail "$in_file" -n+2); do
     #echo $exp_date
 
     email=$(echo $line|cut -f8 -d"$SEP")
-    
-    name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
+
+    if [[ "$last" = "project account" ]];
+    then
+	name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
+    else	
+        name_dot_surname="$(echo "$first" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"".""$(echo "$last" | tr -d ' ' | tr '[:upper:]' '[:lower:]')"
+    fi
 
     if [[ -z "$email" ]];
     then
