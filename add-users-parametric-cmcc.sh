@@ -8,7 +8,7 @@ parent_folder="cmcc"
 pwd_keyword="password"
 none_keyword="None" # just like Python
 pwd_len=10
-docx_filename="CMCC_VPN_account_username_GROUP_script.docx" #"Juno_account_username_DIVISION_script.docx"
+docx_filename="CMCC_IdM_account_username_GROUP_script.docx" #"Juno_account_username_DIVISION_script.docx"
 in_file="$1"
 issuer="$2"
 stage_file="$in_file""_stage"
@@ -172,8 +172,8 @@ for line in $(tail "$in_file" -n+2); do
         otptoken_secret=$(echo "$otptoken_uri" | cut -d'=' -f3 | cut -d'&' -f1)
         packed_docx_args="$(echo $first | tr ' ' '@') $(echo $last | tr ' ' '@') $username $pwd $otptoken_secret"
         div=${groups[0]}
-	docx_filename_out="$out_dir_name"/"CMCC_VPN_account_""$username""_""$(echo $div | tr '[:lower:]' '[:upper:]')"".docx"
-        #docx_filename_out="$out_dir_name"/"CMCC_VPN_account_""$username"".docx"
+	docx_filename_out="$out_dir_name"/"CMCC_IdM_account_""$username""_""$(echo $div | tr '[:lower:]' '[:upper:]')"".docx"
+        #docx_filename_out="$out_dir_name"/"CMCC_IdM_account_""$username"".docx"
 	./find_and_replace_docx.sh "$docx_filename" "$docx_filename_out" '%NAME% %SURNAME% %USERNAME% %PASSWORD% %SECRET%' "$packed_docx_args"
        
 	if [[ ! -z "$issuer" ]];
