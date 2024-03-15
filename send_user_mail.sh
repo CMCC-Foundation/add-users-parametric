@@ -114,12 +114,13 @@ then
                 	echo "Subject: Notifica attivazione account VPN CMCC";
                 	echo "From: $MAIL_FROM";
                 	echo "To: $email";
-			if [[ "$CC_DIVISIONS_DIRECTORS" -ne 0 ]];
-			then
+			#if [[ "$CC_DIVISIONS_DIRECTORS" -ne 0 ]];
+			#then
                 		echo "Cc: $smg_mail, $HSM_MAIL_CC";
-			fi
-			echo "Cc: $HSM_MAIL_CC";
-                	#echo "Mime-Version: 1.0";
+			#fi
+			#echo "Cc: $HSM_MAIL_CC";
+                	
+			#echo "Mime-Version: 1.0";
                 	echo "Content-Type: multipart/related; boundary=\"boundary-example\"; type=\"text/html\"";
                 	echo "";
                 	echo "--boundary-example";
